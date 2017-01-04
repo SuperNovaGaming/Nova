@@ -1,0 +1,187 @@
+using Discord;
+using Discord.Commands;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace NovaBot
+{
+    class MyBot
+    {
+        DiscordClient discord;
+        CommandService commands;
+
+        Random rand;
+
+        string[] randomMemes;
+
+        string[] randomNums;
+
+        string[] randomText;
+
+        public MyBot()
+        {
+            rand = new Random();
+
+            randomMemes = new string[]
+            {
+                "meme/meme1.jpg",
+                "meme/meme2.jpg",
+                "meme/meme3.jpg"
+            };
+
+            randomNums = new string[]
+            {
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6"
+            };
+
+            randomText = new string[]
+            {
+                "Today it's up to you to create the peacefulness you long for.",
+                "A friend asks only for your time not your money.",
+                "If you refuse to accept anything but the best, you very often get it.",
+                "A smile is your passport into the hearts of others.",
+                "Hard work pays off in the future, laziness pays off now.",
+                "Your high-minded principles spell success.",
+                "Enjoy the good luck a companion brings you.",
+                "People are naturally attracted to you.",
+                "A chance meeting opens new doors to success and friendship.",
+                "You learn from your mistakes... You will learn a lot today.",
+                "If you have something good in your life, don't let it go!",
+                "What ever you're goal is in life, embrace it visualize it, and for it will be yours."
+            };
+
+            discord = new DiscordClient(x =>
+            {
+                x.LogLevel = LogSeverity.Info;
+                x.LogHandler = Log;
+            });
+            
+            discord.UsingCommands(x =>
+            {
+                x.PrefixChar = '!';
+                x.AllowMentionPrefix = true;
+            });
+
+            
+            commands = discord.GetService<CommandService>();
+
+            RegisterMemeCommand();
+            RegisterRollCommand();
+            RegisterPurgeCommand();
+            RegisterClearCommand();
+            RegisterOpenCommand();
+            RegisterTextCommand();
+            RegisterHelpCommand();
+            RegisterReturnCommand();
+         
+            discord.ExecuteAndWait(async () =>
+            {
+                await discord.Connect("MjY1NzEyNzUyMjQzMzc2MTQ4.C0zH7Q.vEC6ifONUCCcJTNj409aGfkqNuA", TokenType.Bot);
+            });
+        }
+
+        private void RegisterMemeCommand()
+        {
+            commands.CreateCommand("meme")
+                .Do(async (e) =>
+                {
+                    int randomMemeIndex = rand.Next(randomMemes.Length);
+                    string memeToPost = randomMemes[randomMemeIndex];
+                    await e.Channel.SendFile(memeToPost);
+                });
+        }
+
+        private void RegisterRollCommand()
+        {
+            commands.CreateCommand("roll")
+                .Do(async (e) =>
+                {
+                    int randomNumIndex = rand.Next(randomNums.Length);
+                    string numToPost = randomNums[randomNumIndex];
+                    await e.Channel.SendMessage(numToPost);
+                });
+        }
+
+        private void RegisterPurgeCommand()
+        {
+            commands.CreateCommand("clearall")
+                .Do(async (e) =>
+                {
+                    Message[] messagesToDelete;
+                    messagesToDelete = await e.Channel.DownloadMessages(100);
+
+                    await e.Channel.DeleteMessages(messagesToDelete);
+                });
+        }
+
+        private void RegisterClearCommand()
+        {
+            commands.CreateCommand("clear")
+                .Parameter("Number", ParameterType.Required)
+                .Do(async (e) =>
+                {
+                    Message[] messagesToDelete;
+                    messagesToDelete = await e.Channel.DownloadMessages(Int32.Parse(e.GetArg("Number"))+2);
+
+                    await e.Channel.DeleteMessages(messagesToDelete);
+                    await e.Channel.SendMessage(e.GetArg("Number"));
+                    await e.Channel.SendMessage("Message(s) Deleted");
+                    
+                });
+        }
+
+        private void RegisterOpenCommand()
+        {
+            commands.CreateCommand("channel")
+                .Do(async (e) =>
+                {
+                    await e.Channel.SendMessage("https://www.youtube.com/channel/UCZbz9t-zvG8Gq4OYUIIVNKg");
+                });                    
+        }
+
+        private void RegisterTextCommand()
+        {
+            commands.CreateCommand("text")
+                .Do(async (e) =>
+                {
+                    int randomTextIndex = rand.Next(randomText.Length);
+                    string textToPost = randomText[randomTextIndex];
+                    await e.Channel.SendMessage(textToPost);
+                });
+        }
+
+        private void RegisterHelpCommand()
+        {
+            commands.CreateCommand("help")
+                .Do(async (e) =>
+                {
+                    await e.Channel.SendMessage("!meme - Dank AF");
+
+                });
+        }
+
+        private void RegisterReturnCommand()
+        {
+            commands.CreateCommand("return")
+                .Do(async (e) =>
+                {
+                    await e.Channel.SendMessage("");
+
+                });
+        }
+
+        private void Log(object sender, LogMessageEventArgs e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+}
